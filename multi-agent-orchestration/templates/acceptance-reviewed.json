@@ -1,0 +1,13 @@
+{
+  "level": "reviewed",
+  "description": "For tasks that require independent human or AI reviewer approval.",
+  "criteria": [
+    {
+      "id": "code-review",
+      "must": "Independent reviewer approves the diff",
+      "severity": "required",
+      "evidence": ["reviewer-approval"]
+    }
+  ],
+  "acceptanceNotes": "Use ONLY when you have a fresh-context reviewer (not self-report). Example: validator agent reviews output from writer agent."
+}

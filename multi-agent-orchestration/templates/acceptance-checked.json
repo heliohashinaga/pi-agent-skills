@@ -1,0 +1,32 @@
+{
+  "level": "checked",
+  "description": "For code tasks with unit tests. Use on machines with limited resources (TIER=single or TIER=semi).",
+  "criteria": [
+    {
+      "id": "build",
+      "must": "Build succeeds with 0 errors",
+      "severity": "required",
+      "evidence": ["commands-run"]
+    },
+    {
+      "id": "unit-tests",
+      "must": "Unit tests pass (no integration tests)",
+      "severity": "required",
+      "evidence": ["test-output"],
+      "command": "npm test -- --testPathIgnorePatterns=integration || dotnet test --filter=Category!=Integration"
+    }
+  ],
+  "verify": [
+    {
+      "id": "build",
+      "command": "npm run build || dotnet build",
+      "timeoutMs": 180000
+    },
+    {
+      "id": "unit-tests",
+      "command": "npm test -- --testPathIgnorePatterns=integration || dotnet test --filter=Category!=Integration",
+      "timeoutMs": 180000
+    }
+  ],
+  "acceptanceNotes": "Includes build + unit tests only. Skip integration tests to keep on resource-constrained machines."
+}

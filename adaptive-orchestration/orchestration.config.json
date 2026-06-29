@@ -1,0 +1,63 @@
+{
+  "strategies": {
+    "single": {
+      "name": "Sequential (Single Worker)",
+      "maxWorkers": 1,
+      "buildFlags": "--no-parallel",
+      "dotnetClean": true,
+      "roslynCleanup": true,
+      "sleepBetweenTasks": 5000,
+      "timeoutPerTask": 900000,
+      "description": "For notebooks with <4 GB RAM. Each task runs to completion before next starts."
+    },
+    "semi": {
+      "name": "Semi-Parallel (2 Workers)",
+      "maxWorkers": 2,
+      "buildFlags": "--no-parallel",
+      "dotnetClean": false,
+      "roslynCleanup": false,
+      "sleepBetweenTasks": 2000,
+      "timeoutPerTask": 600000,
+      "description": "For machines with 4-8 GB RAM. Scout + Worker parallel, then dependent tasks sequential."
+    },
+    "full": {
+      "name": "Full Parallel (N Workers)",
+      "maxWorkers": null,
+      "buildFlags": "",
+      "dotnetClean": false,
+      "roslynCleanup": false,
+      "sleepBetweenTasks": 0,
+      "timeoutPerTask": 300000,
+      "description": "For CI/CD runners with 8+ GB RAM and 4+ cores. All tasks run in parallel."
+    }
+  },
+  "detection": {
+    "ramThresholds": [
+      {
+        "min": 0,
+        "max": 4,
+        "tier": "single"
+      },
+      {
+        "min": 4,
+        "max": 8,
+        "tier": "semi"
+      },
+      {
+        "min": 8,
+        "max": null,
+        "tier": "full"
+      }
+    ],
+    "coreMinimum": 2,
+    "autoDowngrade": true,
+    "memoryReserve": 1
+  },
+  "healthChecks": {
+    "enabled": true,
+    "minAvailableMemory": 2,
+    "minDiskSpace": 5,
+    "maxSwapUsagePercent": 80,
+    "failOnUncleanGit": true
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "level": "checked",
+  "description": "For code tasks with full test suite including integration tests. Use on well-resourced machines (TIER=full).",
+  "criteria": [
+    {
+      "id": "build",
+      "must": "Full build succeeds with 0 errors",
+      "severity": "required",
+      "evidence": ["commands-run"]
+    },
+    {
+      "id": "unit-tests",
+      "must": "Unit tests pass",
+      "severity": "required",
+      "evidence": ["test-output"]
+    },
+    {
+      "id": "integration-tests",
+      "must": "Integration tests pass",
+      "severity": "required",
+      "evidence": ["test-output"]
+    },
+    {
+      "id": "coverage",
+      "must": "Test coverage >80%",
+      "severity": "optional",
+      "evidence": ["coverage-report"]
+    }
+  ],
+  "verify": [
+    {
+      "id": "build",
+      "command": "npm run build || dotnet build",
+      "timeoutMs": 300000
+    },
+    {
+      "id": "unit-tests",
+      "command": "npm test -- --testPathIgnorePatterns=integration || dotnet test --filter=Category!=Integration",
+      "timeoutMs": 300000
+    },
+    {
+      "id": "integration-tests",
+      "command": "npm test -- --testPathPattern=integration || dotnet test --filter=Category=Integration",
+      "timeoutMs": 600000
+    }
+  ],
+  "acceptanceNotes": "Full test suite including integration. Safe on high-resource machines. Takes longer but catches more issues."
+}

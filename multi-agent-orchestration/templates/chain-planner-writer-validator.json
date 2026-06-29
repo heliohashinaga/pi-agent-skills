@@ -1,0 +1,67 @@
+{
+  "chain": [
+    {
+      "label": "planners",
+      "parallel": [
+        {
+          "agent": "planner",
+          "task": "Plan the implementation including architecture decisions, test outline, and edge cases. Output as structured summary.",
+          "as": "plan",
+          "acceptance": {
+            "level": "attested"
+          }
+        },
+        {
+          "agent": "reviewer",
+          "task": "Review the plan for potential issues, inconsistencies, or missed requirements. Output as review document.",
+          "as": "review",
+          "acceptance": {
+            "level": "attested"
+          }
+        }
+      ]
+    },
+    {
+      "agent": "writer",
+      "task": "Implement based on the plan from {outputs.plan} and incorporate feedback from {outputs.review}. Remember to git add -A && git commit on your branch before finishing.",
+      "acceptance": {
+        "level": "checked",
+        "criteria": [
+          {
+            "id": "build",
+            "must": "Build succeeds",
+            "evidence": ["commands-run"]
+          },
+          {
+            "id": "tests",
+            "must": "Tests pass",
+            "evidence": ["test-output"]
+          }
+        ]
+      }
+    },
+    {
+      "label": "validators",
+      "parallel": [
+        {
+          "agent": "validator",
+          "task": "Review the implementation diff for correctness, performance, and adherence to the plan. Output as validation report.",
+          "acceptance": {
+            "level": "reviewed"
+          }
+        },
+        {
+          "agent": "validator",
+          "task": "Check for edge cases, error handling, and test coverage gaps. Output as correctness report.",
+          "acceptance": {
+            "level": "reviewed"
+          }
+        }
+      ]
+    }
+  ],
+  "async": true,
+  "concurrency": 2,
+  "worktree": true,
+  "notes": "This is the preferred shape: planners in parallel (cheap), single writer (sole writer), validators in fresh context (parallel, read-only). Adjust concurrency based on your tier (see ORCHESTRATION-BRIDGE.md)."
+}
