@@ -1,0 +1,26 @@
+{
+  "detection": {
+    "ramThresholds": [
+      {
+        "min": 0,
+        "max": 4,
+        "tier": "single"
+      },
+      {
+        "min": 4,
+        "max": 8,
+        "tier": "semi"
+      },
+      {
+        "min": 8,
+        "max": null,
+        "tier": "full"
+      }
+    ]
+  },
+  "healthChecks": {
+    "minAvailableMemory": 2,
+    "minDiskSpace": 5,
+    "maxSwapUsagePercent": 80
+  }
+}

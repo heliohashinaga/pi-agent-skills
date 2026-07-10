@@ -144,14 +144,6 @@ user must resolve, or a blocker the worker cannot unblock with stated rules.
   the child's internal timeout expired. Fix: bake the dep-direction rule into
   the prompt so escalation never happens.
 
-## Project-level invariants belong in AGENTS.md, not here
-
-Keep this skill generic. Project specifics (which build command, which spec
-file is the source of truth, per-slice worktree naming) live in the repo's
-`AGENTS.md` as short rules. This skill references "the project's build
-command" abstractly; the AGENTS.md supplies the concrete `dotnet build` /
-`dotnet test` / etc.
-
 ---
 
 ## Integration with Adaptive Orchestration

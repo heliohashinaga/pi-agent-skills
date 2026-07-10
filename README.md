@@ -4,21 +4,19 @@ A collection of production-grade skills for [pi](https://github.com/earendil-wor
 
 ## 📚 Skills Included
 
-### 1. **Adaptive Orchestration**
-Tier-aware subagent delegation with automatic resource detection.
+### 1. **Orchestration Advisor**
+Detects machine capacity and recommends the best orchestration strategy.
 
-- ✅ Sequential, semi-parallel, or full-parallel execution
-- ✅ Auto-detect system resources (RAM, CPU cores, swap)
-- ✅ Health checks before delegation
-- ✅ CI/CD integration (GitHub Actions, local machines)
-- ✅ Auto-downgrade on memory pressure
+- ✅ Detect current resource status (RAM, CPU cores, swap, disk)
+- ✅ Recommend sequential / hybrid / parallel orchestration
+- ✅ Skill entrypoint + extension implementation
 
-**Use when**: You need to delegate work to subagents but want to avoid OOM crashes and optimize concurrency based on available resources.
+**Use when**: You need a concise advisor that suggests how aggressively to orchestrate based on current machine resources.
 
 **Links**:
-- [`adaptive-orchestration/SKILL.md`](adaptive-orchestration/SKILL.md) — Skill descriptor
-- [`adaptive-orchestration/README.md`](adaptive-orchestration/README.md) — Quick start
-- [`adaptive-orchestration/REFERENCE.md`](adaptive-orchestration/REFERENCE.md) — Pattern lookup
+- [`orchestration-advisor/skill/SKILL.md`](orchestration-advisor/skill/SKILL.md) — Skill descriptor
+- [`orchestration-advisor/extension/index.ts`](orchestration-advisor/extension/index.ts) — Extension implementation
+- [`orchestration-advisor/skill/orchestration.config.json`](orchestration-advisor/skill/orchestration.config.json) — Threshold configuration
 
 ---
 
@@ -41,23 +39,7 @@ Playbook for orchestrating pi-subagents safely with worktrees, chains, and accep
 
 ---
 
-### 3. **Dev Toolbox**
-Personal developer-tooling playbook for environment audits and CLI tool selection.
-
-- ✅ Discover installed CLI tools
-- ✅ Choose the best tool for the job
-- ✅ Explain fallbacks when preferred utilities are missing
-- ✅ WSL/Linux/Windows path guidance
-- ✅ Separate reusable workflows from project-specific instructions
-
-**Use when**: You need to audit environment setup, pick the right CLI tool, or troubleshoot PATH/package-manager issues.
-
-**Links**:
-- [`dev-toolbox/SKILL.md`](dev-toolbox/SKILL.md) — Skill descriptor
-
----
-
-### 4. **hledger**
+### 3. **hledger**
 hledger accounting commands for managing personal and small business finances.
 
 - ✅ Run reports (balance, register, incomestatement, cashflow, balancesheet)
@@ -79,10 +61,14 @@ hledger accounting commands for managing personal and small business finances.
 
 These skills are designed to work together:
 
-- **Adaptive Orchestration + Multi-Agent Orchestration**: Combined resource-aware orchestration
-  - See [`adaptive-orchestration/ORCHESTRATION-BRIDGE.md`](adaptive-orchestration/ORCHESTRATION-BRIDGE.md)
+- **Orchestration Advisor + Multi-Agent Orchestration**: resource-aware orchestration strategy plus workflow orchestration
+  - See [`orchestration-advisor/skill/SKILL.md`](orchestration-advisor/skill/SKILL.md)
   - See [`multi-agent-orchestration/ORCHESTRATION-BRIDGE.md`](multi-agent-orchestration/ORCHESTRATION-BRIDGE.md)
 
-- **Adaptive Orchestration** pairs with **Multi-Agent Orchestration** for complete resource-aware delegation:
-  - **Adaptive**: Detects what resources are available → which tier to use
+- **Orchestration Advisor** pairs with **Multi-Agent Orchestration** when you need a lightweight strategy recommendation plus a safe multi-agent execution pattern:
+  - **Advisor**: Detects available resources → recommends a strategy
   - **Multi-Agent**: Structures chains, worktrees, acceptance contracts → how to orchestrate safely
+
+## 🧩 Extension
+
+- [`orchestration-advisor/extension/`](orchestration-advisor/extension/) — core implementation behind the orchestration advisor skill
