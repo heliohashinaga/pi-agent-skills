@@ -18,6 +18,8 @@
     "lib/routing.ts",
     "lib/worktree.ts",
     "lib/task.ts",
+    "lib/prompts.ts",
+    "lib/gates.ts",
     "lib/controller.ts",
     "lib/config.ts",
     "lib/cli.ts",
