@@ -12,6 +12,8 @@
   },
   "include": [
     "lib/contracts.ts",
+    "lib/shell.ts",
+    "lib/lock.ts",
     "lib/cancellation.ts",
     "lib/routing.ts",
     "lib/worktree.ts",

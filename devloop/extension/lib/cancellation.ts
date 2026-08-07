@@ -9,11 +9,12 @@
  * the owning PID is still alive after a reload.
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import lockfile from "proper-lockfile";
+
+import { atomicWrite, withLock } from "./lock";
 
 export interface ActiveDevloopRunInfo {
 	runId: string;
@@ -83,33 +84,10 @@ function isPidAlive(pid: number): boolean {
 	}
 }
 
-// --- Cross-process mutual exclusion via proper-lockfile ---
-
-/**
- * proper-lockfile uses an atomic mkdir lease, ownership-aware release, stale
- * lock recovery, and heartbeats. This avoids permanent deadlocks after a Pi
- * crash and prevents one process from unlinking another process's live lock.
- */
-async function acquireLock(): Promise<() => Promise<void>> {
-	mkdirSync(leaseDir(), { recursive: true });
-	return lockfile.lock(leaseDir(), {
-		realpath: false,
-		lockfilePath: lockFilePath(),
-		stale: 30_000,
-		update: 10_000,
-		retries: { retries: 20, factor: 1.4, minTimeout: 10, maxTimeout: 250 },
-	});
-}
-
-// --- Lease operations (all guarded by acquireLock) ---
+// --- Lease operations (all guarded by withLock) ---
 
 async function withLeaseLock<T>(fn: () => Promise<T>): Promise<T> {
-	const release = await acquireLock();
-	try {
-		return await fn();
-	} finally {
-		await release();
-	}
+	return withLock(leaseDir(), "devloop-lease.lock", fn);
 }
 
 function readLeaseFileUnlocked(): LeaseRecord | undefined {
@@ -135,10 +113,7 @@ function readLeaseFileUnlocked(): LeaseRecord | undefined {
 }
 
 function writeLeaseFileUnlocked(record: LeaseRecord): void {
-	const target = leaseFilePath();
-	const temporary = `${target}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
-	writeFileSync(temporary, JSON.stringify(record, null, 2), { encoding: "utf8", mode: 0o600 });
-	renameSync(temporary, target);
+	atomicWrite(leaseFilePath(), JSON.stringify(record, null, 2), 0o600);
 }
 
 function removeLeaseFileUnlocked(): void {

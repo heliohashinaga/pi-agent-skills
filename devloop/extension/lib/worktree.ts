@@ -1,14 +1,6 @@
 import path from "node:path";
 
-export interface CommandResult {
-	code: number;
-	stdout: string;
-	stderr: string;
-}
-
-export interface CommandRunner {
-	exec(command: string, args: string[], options?: { cwd?: string; signal?: AbortSignal }): Promise<CommandResult>;
-}
+import { cleanOutput, type CommandRunner, requireSuccess } from "./shell";
 
 export interface GitWorkspace {
 	repoRoot: string;
@@ -30,20 +22,6 @@ export interface WorktreeRequest {
 export interface WorktreeHandle {
 	branch: string;
 	path: string;
-}
-
-function commandFailure(command: string, result: CommandResult): Error {
-	const detail = result.stderr.trim() || result.stdout.trim() || `exit code ${result.code}`;
-	return new Error(`${command} failed: ${detail}`);
-}
-
-function requireSuccess(command: string, result: CommandResult): CommandResult {
-	if (result.code !== 0) throw commandFailure(command, result);
-	return result;
-}
-
-function cleanOutput(value: string): string {
-	return value.trim();
 }
 
 export async function preflightGitWorkspace(runner: CommandRunner, cwd: string, signal?: AbortSignal): Promise<GitWorkspace> {

@@ -52,9 +52,10 @@ import {
 	selectRange,
 	type TaskDefinition,
 } from "./lib/task";
-import { createWorktree, listDevloopWorktrees, preflightGitWorkspace, removeDevloopWorktree, type CommandRunner } from "./lib/worktree";
+import { createWorktree, listDevloopWorktrees, preflightGitWorkspace, removeDevloopWorktree } from "./lib/worktree";
 import { appendStackEntry, chainTip, ensureStack, stackSummary } from "./lib/stack";
 import { createPullRequest } from "./lib/pr";
+import type { CommandRunner } from "./lib/shell";
 import { consolidate, writeRetro } from "./lib/retro";
 import { listRetros, readRetro, removeRetros } from "./lib/retro";
 import { runRetroAnalysis } from "./lib/retro-agent";

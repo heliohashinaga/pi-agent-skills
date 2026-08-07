@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import lockfile from "proper-lockfile";
+
+import { atomicWrite, withLock } from "./lock";
 
 /**
  * Devloop chain registry — `.pi/devloop-stack.json`.
@@ -42,30 +43,6 @@ function stackFilePath(repoRoot: string): string {
 	return path.join(stackDir(repoRoot), STACK_FILENAME);
 }
 
-function stackLockPath(repoRoot: string): string {
-	return path.join(stackDir(repoRoot), `${STACK_FILENAME}.lock`);
-}
-
-/**
- * proper-lockfile uses an atomic mkdir lease, ownership-aware release, stale
- * lock recovery, and heartbeats — mirrors the lease locking in cancellation.ts.
- */
-async function withStackLock<T>(repoRoot: string, fn: () => Promise<T>): Promise<T> {
-	mkdirSync(stackDir(repoRoot), { recursive: true });
-	const release = await lockfile.lock(stackDir(repoRoot), {
-		realpath: false,
-		lockfilePath: stackLockPath(repoRoot),
-		stale: 30_000,
-		update: 10_000,
-		retries: { retries: 20, factor: 1.4, minTimeout: 10, maxTimeout: 250 },
-	});
-	try {
-		return await fn();
-	} finally {
-		await release();
-	}
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -95,15 +72,12 @@ function readStackUnlocked(repoRoot: string): StackConfig | undefined {
 }
 
 function writeStackUnlocked(repoRoot: string, stack: StackConfig): void {
-	const target = stackFilePath(repoRoot);
-	const temporary = `${target}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
-	writeFileSync(temporary, JSON.stringify(stack, null, 2), { encoding: "utf8" });
-	renameSync(temporary, target);
+	atomicWrite(stackFilePath(repoRoot), JSON.stringify(stack, null, 2));
 }
 
 /** Read the chain registry, or `undefined` if absent or corrupt. */
 export async function readStack(repoRoot: string): Promise<StackConfig | undefined> {
-	return withStackLock(repoRoot, async () => readStackUnlocked(repoRoot));
+	return withLock(stackDir(repoRoot), `${STACK_FILENAME}.lock`, async () => readStackUnlocked(repoRoot));
 }
 
 /**
@@ -111,7 +85,7 @@ export async function readStack(repoRoot: string): Promise<StackConfig | undefin
  * returned untouched (never overwritten).
  */
 export async function ensureStack(repoRoot: string, name: string, base: string): Promise<StackConfig> {
-	return withStackLock(repoRoot, async () => {
+	return withLock(stackDir(repoRoot), `${STACK_FILENAME}.lock`, async () => {
 		const existing = readStackUnlocked(repoRoot);
 		if (existing) return existing;
 		const stack: StackConfig = { name, base, entries: [] };
@@ -125,7 +99,7 @@ export async function ensureStack(repoRoot: string, name: string, base: string):
  * entry's branch, or `base` when the stack is empty.
  */
 export async function chainTip(repoRoot: string, base: string): Promise<string> {
-	return withStackLock(repoRoot, async () => {
+	return withLock(stackDir(repoRoot), `${STACK_FILENAME}.lock`, async () => {
 		const stack = readStackUnlocked(repoRoot);
 		const last = stack?.entries[stack.entries.length - 1];
 		return last?.branch ?? base;
@@ -148,7 +122,7 @@ export async function appendStackEntry(
 	base: string,
 	input: AppendStackEntryInput,
 ): Promise<StackEntry> {
-	return withStackLock(repoRoot, async () => {
+	return withLock(stackDir(repoRoot), `${STACK_FILENAME}.lock`, async () => {
 		const stack = readStackUnlocked(repoRoot) ?? { name, base, entries: [] };
 		const prBase = stack.entries[stack.entries.length - 1]?.branch ?? stack.base;
 		const entry: StackEntry = { task: input.task, branch: input.branch, prBase, ...(input.prUrl ? { prUrl: input.prUrl } : {}) };
