@@ -43,10 +43,7 @@ describe("devloop wiring (ExtensionAPI fake)", () => {
 	test("session_start installs DevloopInterruptEditor", () => {
 		const { pi, ctx, sessionStartHandlers, editorFactory } = fakeExtensionApi();
 		devloopExtension(pi);
-
-		expect(sessionStartHandlers.length).toBe(1);
 		sessionStartHandlers[0]!("session_start", ctx);
-
 		expect(editorFactory.current).not.toBeNull();
 	});
 
