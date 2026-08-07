@@ -10,5 +10,17 @@
       "pi-subagents/preflight": ["types/pi-subagents-preflight.d.ts"]
     }
   },
-  "include": ["index.ts", "lib/delegate.ts", "lib/retro-agent.ts", "types/*.d.ts"]
+  "include": [
+    "index.ts",
+    "lib/delegate.ts",
+    "lib/retro-agent.ts",
+    "lib/interrupt.ts",
+    "lib/run.ts",
+    "commands/devloop.ts",
+    "commands/stop.ts",
+    "commands/cleanup.ts",
+    "commands/retro.ts",
+    "commands/smoke.ts",
+    "types/*.d.ts"
+  ]
 }

@@ -22,7 +22,6 @@
     "lib/config.ts",
     "lib/cli.ts",
     "lib/scheduler.ts",
-    "lib/batch-controller.ts",
     "lib/pipeline.ts",
     "lib/retro.ts",
     "lib/panel.ts",
