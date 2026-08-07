@@ -51,7 +51,19 @@ export function buildRetroRequest(
 	ownerRunId: string,
 	factsPath: string,
 	ledgerPaths: string[],
+	hasCodeTimeout: boolean = false,
 ): SubagentDelegationV2Request {
+	const timeoutNote = hasCodeTimeout
+		? [
+				"",
+				"IMPORTANT: This run hit a code-stage timeout (worker-complex) before escalation.",
+				"A timeout with partial work strongly suggests the slice was too large for the model.",
+				"Consider recommending replanning into smaller subtasks or adjusting the planner prompt",
+				"to produce narrower scopes. Do NOT just suggest 'increase timeout' — the goal is",
+				"to make slices completable within budget, not to expand the budget indefinitely.",
+			]
+		: [];
+
 	return {
 		requestId: randomUUID(), ownerRunId, nodeId: `retro:${randomUUID()}`, agent: "retro",
 		task: [
@@ -66,6 +78,7 @@ export function buildRetroRequest(
 			"You are strictly read-only: do NOT modify any file, write output, or run git.",
 			`Facts JSON: ${factsPath}`,
 			`Ledgers: ${ledgerPaths.join(", ") || "(none)"}`,
+			...timeoutNote,
 		].join("\n"),
 		context: "fresh", cwd, timeoutMs: RETRO_ANALYSIS_TIMEOUT_MS,
 		turnBudget: { maxTurns: 16, graceTurns: 0 },
@@ -89,11 +102,23 @@ export async function runRetroAnalysis(
 	const metrics = readRetro(runId, repoRoot);
 	if (!metrics) throw new Error(`No devloop retrospective facts for ${runId}.`);
 
+	// Detect if there was a code-stage timeout
+	const hasCodeTimeout = metrics.stages.some(
+		(s) => s.stage === "code" && s.verdict === "FAILED" && (s as { error?: string }).error?.includes("timed out"),
+	);
+
 	const ledgerPaths = metrics.meta.taskIds
 		.map((taskId) => sessionPath(taskId, repoRoot))
 		.filter((p) => existsSync(p));
 	const ownerRunId = `devloop-retro-${randomUUID()}`;
-	const request = buildRetroRequest(runId, repoRoot, ownerRunId, retroJsonPath(runId, repoRoot), ledgerPaths);
+	const request = buildRetroRequest(
+		runId,
+		repoRoot,
+		ownerRunId,
+		retroJsonPath(runId, repoRoot),
+		ledgerPaths,
+		hasCodeTimeout,
+	);
 	const response: SubagentDelegationV2Response = await delegate(pi, ctx, {
 		request,
 		statusKey: `retro:${runId}`,

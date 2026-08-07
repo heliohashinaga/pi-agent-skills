@@ -56,6 +56,7 @@ export type PipelineEvent =
 			changedFiles?: string[];
 	  }
 	| { type: "stage:failed"; unit: string; stage: GateStage; agent: string; error?: string }
+	| { type: "stage:timeout"; unit: string; stage: GateStage; agent: string; tokens?: number; toolCalls?: number; durationMs: number }
 	| { type: "run:end"; unit: string; status: PipelineTerminal; reason?: string };
 
 export interface PipelineSnapshot {
@@ -139,6 +140,22 @@ export function applyEvent(snapshot: PipelineSnapshot, event: PipelineEvent, now
 			const running = snapshot.steps[idx]!;
 			const steps = [...snapshot.steps];
 			steps[idx] = { ...running, status: "failed" as const, error: event.error };
+			return { ...snapshot, steps };
+		}
+
+		case "stage:timeout": {
+			const idx = lastRunningIndex(snapshot.steps, event.unit, event.stage, event.agent);
+			if (idx < 0) return snapshot;
+			const running = snapshot.steps[idx]!;
+			const steps = [...snapshot.steps];
+			steps[idx] = {
+				...running,
+				status: "failed" as const,
+				error: "timed out",
+				...(event.tokens !== undefined ? { tokens: event.tokens } : {}),
+				...(event.toolCalls !== undefined ? { toolCount: event.toolCalls } : {}),
+				durationMs: event.durationMs,
+			};
 			return { ...snapshot, steps };
 		}
 

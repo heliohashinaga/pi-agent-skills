@@ -183,6 +183,17 @@ export async function runController(deps: ControllerDeps): Promise<ControllerOut
 				continue;
 			}
 
+			// Emit structured timeout event for retrospectives
+			if (isTimeout) {
+				emit({
+					type: "stage:timeout",
+					unit: deps.task.id,
+					stage: currentStage,
+					agent,
+					durationMs: 600000, // Default timeout; actual may vary per stage config
+				});
+			}
+
 			return endRun("human-escalation", `${currentStage} delegate failed: ${message}`);
 		}
 
