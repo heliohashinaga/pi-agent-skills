@@ -5,6 +5,17 @@ import type {
 	PlannedSliceResult,
 } from "./contracts";
 import {
+	type DevloopSession,
+	createSession,
+	flushSession,
+	ledgerEntryFor,
+	loadSession,
+	planFilePath,
+	planFromResult,
+	sessionPath,
+	writePlanFile,
+} from "./session";
+import {
 	dedupeSkills,
 	feedbackFor,
 	gateSpecs,
@@ -14,18 +25,8 @@ import {
 import { integratePrompt } from "./prompts";
 import { createRunState, transition, type RunTransition } from "./routing";
 import type { PipelineEvent } from "./pipeline";
-import {
-	createSession,
-	flushSession,
-	ledgerEntryFor,
-	loadSession,
-	planFilePath,
-	planFromResult,
-	sessionPath,
-	writePlanFile,
-	type DevloopSession,
-} from "./session";
 import type { TaskDefinition } from "./task";
+import { DevloopDelegationError } from "./errors";
 
 export interface ControllerOutput {
 	status: "ready-to-merge" | "human-escalation";
@@ -168,9 +169,7 @@ export async function runController(deps: ControllerDeps): Promise<ControllerOut
 			// to worker-complex, and a worker-complex retries itself — before escalation.
 			// Previously a worker-complex timeout was terminal (no worker-simple mediation),
 			// so a complex slice that ran out of clock lost its partial work entirely.
-			//
-			// TODO(Fase 4): replace string matching with DevloopDelegationError.kind === "timed_out".
-			const isTimeout = message.includes("timed out");
+			const isTimeout = error instanceof DevloopDelegationError && error.kind === "timed_out";
 			if (currentStage === "code" && isTimeout && codeSalvageCount < 1) {
 				codeSalvageCount += 1;
 				if (agent === "worker-simple") {

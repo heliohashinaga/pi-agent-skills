@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { runController } from "../controller";
+import { DevloopDelegationError } from "../errors";
 import type { GateResult, GateStage } from "../contracts";
 import type { PipelineEvent } from "../pipeline";
 
@@ -182,7 +183,7 @@ describe("devloop controller", () => {
 				if (stage === "code") {
 					// First call: worker-simple times out
 					if (agent === "worker-simple") {
-						throw new Error("worker-simple failed (timed_out): Subagent timed out after 600000ms.");
+						throw new DevloopDelegationError("timed_out", "worker-simple timed out", { agent });
 					}
 					// Second call (salvage): worker-complex succeeds
 					return { stage: "code", verdict: "IMPLEMENTED", summary: "Salvaged." };
@@ -208,7 +209,7 @@ describe("devloop controller", () => {
 				called.push(agent!);
 				if (stage === "code") {
 					// Both worker-simple and worker-complex time out
-					throw new Error(`${agent} failed (timed_out): Subagent timed out after 600000ms.`);
+					throw new DevloopDelegationError("timed_out", `${agent} timed out`, { agent });
 				}
 				return nextResult(stage, task.id);
 			},
@@ -235,7 +236,7 @@ describe("devloop controller", () => {
 				if (stage === "code") {
 					// First worker-complex budget times out; the retry succeeds.
 					if (called.filter((a) => a === "worker-complex").length === 1) {
-						throw new Error("worker-complex failed (timed_out): Subagent timed out after 600000ms.");
+						throw new DevloopDelegationError("timed_out", "worker-complex timed out", { agent });
 					}
 					return { stage: "code", verdict: "IMPLEMENTED", summary: "Finalized partial work." };
 				}
@@ -261,7 +262,7 @@ describe("devloop controller", () => {
 				}
 				if (stage === "code") {
 					// Every worker-complex budget times out.
-					throw new Error("worker-complex failed (timed_out): Subagent timed out after 600000ms.");
+					throw new DevloopDelegationError("timed_out", "worker-complex timed out", { agent });
 				}
 				return nextResult(stage, task.id);
 			},

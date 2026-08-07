@@ -12,6 +12,8 @@ import {
 	type SubagentDelegationUpdate as SubagentDelegationV2Update,
 } from "pi-subagents/delegation";
 
+import { DevloopDelegationError } from "./errors";
+
 export interface DelegateOptions {
 	request: SubagentDelegationV2Request;
 	timeoutMs?: number;
@@ -83,7 +85,7 @@ export async function delegate(
 	// Without this guard, stopping during devloop preflight could still dispatch
 	// the next child because its delegate listener would never observe the abort.
 	if (ctx.signal?.aborted || options.signal?.aborted) {
-		throw new Error("Devloop delegation was cancelled before it started.");
+		throw new DevloopDelegationError("cancelled", "Devloop delegation was cancelled before it started.", { agent: request.agent });
 	}
 
 	return await new Promise<SubagentDelegationV2Response>((resolve, reject) => {
@@ -109,12 +111,12 @@ export async function delegate(
 
 		const onAbort = () => {
 			cancel();
-			finish(() => reject(new Error("Devloop delegation was cancelled.")));
+			finish(() => reject(new DevloopDelegationError("cancelled", "Devloop delegation was cancelled.", { agent: request.agent })));
 		};
 
 		const onExternalAbort = () => {
 			cancel();
-			finish(() => reject(new Error("Devloop delegation was cancelled (Esc).")));
+			finish(() => reject(new DevloopDelegationError("cancelled", "Devloop delegation was cancelled (Esc).", { agent: request.agent })));
 		};
 
 		const unsubscribeResponse = pi.events.on(SUBAGENT_DELEGATION_RESPONSE_EVENT, (value) => {
@@ -156,7 +158,11 @@ export async function delegate(
 			const deadlineDetail = childTimeout === undefined
 				? ""
 				: ` (child deadline: ${childTimeout}ms)`;
-			finish(() => reject(new Error(`Delegation for ${request.agent} did not settle after ${timeoutMs}ms${deadlineDetail}.`)));
+			finish(() => reject(new DevloopDelegationError(
+				"timed_out",
+				`Delegation for ${request.agent} did not settle after ${timeoutMs}ms${deadlineDetail}.`,
+				{ agent: request.agent },
+			)));
 		}, timeoutMs);
 
 		ctx.signal?.addEventListener("abort", onAbort, { once: true });
