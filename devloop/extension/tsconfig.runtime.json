@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2023"],
+    "paths": {
+      "@earendil-works/pi-coding-agent": ["types/pi-coding-agent.d.ts"],
+      "pi-subagents/delegation": ["types/pi-subagents-delegation.d.ts"],
+      "pi-subagents/preflight": ["types/pi-subagents-preflight.d.ts"]
+    }
+  },
+  "include": ["index.ts", "lib/delegate.ts", "lib/retro-agent.ts", "types/*.d.ts"]
+}

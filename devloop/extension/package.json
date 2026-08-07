@@ -1,0 +1,23 @@
+{
+  "name": "devloop-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:runtime": "tsc --noEmit -p tsconfig.runtime.json",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "pi-subagents": "0.42.1",
+    "proper-lockfile": "^4.1.2"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.83.0",
+    "@earendil-works/pi-tui": "0.83.0",
+    "@types/node": "^26.1.2",
+    "@types/proper-lockfile": "^4.1.4",
+    "typescript": "5.9.3"
+  }
+}

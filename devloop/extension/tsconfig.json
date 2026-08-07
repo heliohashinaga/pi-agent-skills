@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node"]
+  },
+  "include": [
+    "lib/contracts.ts",
+    "lib/cancellation.ts",
+    "lib/routing.ts",
+    "lib/worktree.ts",
+    "lib/task.ts",
+    "lib/controller.ts",
+    "lib/config.ts",
+    "lib/cli.ts",
+    "lib/scheduler.ts",
+    "lib/batch-controller.ts",
+    "lib/pipeline.ts",
+    "lib/retro.ts",
+    "lib/panel.ts",
+    "lib/cards.ts",
+    "lib/observer.ts"
+  ]
+}
