@@ -31,7 +31,7 @@ function validateAgainstSchema(
 
 describe("retro agent contract (read-only delegation)", () => {
 	test("buildRetroRequest targets the read-only retro agent, fresh context, structured schema", () => {
-		const req = buildRetroRequest("r-1", "/repo", "owner-1", "/repo/.pi/devloop-sessions/r-1.retro.json", ["/repo/.pi/devloop-sessions/T009.json"]);
+		const req = buildRetroRequest("r-1", "/repo", "owner-1", "/repo/.pi/devloop/sessions/r-1.retro.json", ["/repo/.pi/devloop/sessions/T009.json"]);
 		expect(req.agent).toBe("retro");
 		expect(req.context).toBe("fresh");
 		expect(req.toolBudget?.block).toContain("write");

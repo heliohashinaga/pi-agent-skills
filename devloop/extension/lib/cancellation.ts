@@ -14,6 +14,7 @@ import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { globalLeaseFile, globalLeaseLockFile } from "./storage";
 import { atomicWrite, withLock } from "./lock";
 
 export interface ActiveDevloopRunInfo {
@@ -54,17 +55,12 @@ export function _setLeaseDirForTests(dir: string): void {
 	_leaseDirOverride = dir;
 }
 
-function leaseDir(): string {
-	if (_leaseDirOverride) return _leaseDirOverride;
-	return path.join(os.homedir(), ".pi", "agent");
-}
-
 function leaseFilePath(): string {
-	return path.join(leaseDir(), "devloop-lease.json");
+	return _leaseDirOverride ? path.join(_leaseDirOverride, "lease.json") : globalLeaseFile();
 }
 
 function lockFilePath(): string {
-	return path.join(leaseDir(), "devloop-lease.lock");
+	return _leaseDirOverride ? path.join(_leaseDirOverride, "lease.lock") : globalLeaseLockFile();
 }
 
 // --- Session owner ---
@@ -87,7 +83,7 @@ function isPidAlive(pid: number): boolean {
 // --- Lease operations (all guarded by withLock) ---
 
 async function withLeaseLock<T>(fn: () => Promise<T>): Promise<T> {
-	return withLock(leaseDir(), "devloop-lease.lock", fn);
+	return withLock(path.dirname(leaseFilePath()), "lease.lock", fn);
 }
 
 function readLeaseFileUnlocked(): LeaseRecord | undefined {
@@ -332,7 +328,7 @@ export function _forgetInMemoryRunForTests(): void {
 /** Inject a lease onto disk for testing recovery paths. Not under lock — test-only. */
 export function _injectLeaseForTests(lease: LeaseRecord): void {
 	try {
-		const dir = leaseDir();
+		const dir = path.dirname(leaseFilePath());
 		if (!existsSync(dir)) {
 			mkdirSync(dir, { recursive: true });
 		}

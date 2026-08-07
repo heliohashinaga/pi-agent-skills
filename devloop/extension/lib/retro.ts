@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { join } from "node:path";
 
 import type { FindingSeverity } from "./contracts";
-import { SESSIONS_DIR } from "./session";
+import { SESSIONS_DIR as SESSIONS_DIR_STORAGE } from "./storage";
 import type { PipelineSnapshot, PipelineStep, PipelineTerminal } from "./pipeline";
 
 /**
@@ -23,6 +23,7 @@ import type { PipelineSnapshot, PipelineStep, PipelineTerminal } from "./pipelin
  */
 
 export const RETRO_SCHEMA_VERSION = 1;
+const SESSIONS_DIR = SESSIONS_DIR_STORAGE;
 export const RETRO_SUFFIX = ".retro";
 
 /** Run-level context captured by the runtime when closing a run. */

@@ -2,9 +2,14 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { atomicWrite, withLock } from "./lock";
+import {
+	stackFile,
+	stackLockFile,
+	STACK_FILENAME as STACK_FILENAME_STORAGE,
+} from "./storage";
 
 /**
- * Devloop chain registry — `.pi/devloop-stack.json`.
+ * Devloop chain registry — `.pi/devloop/stack.json`.
  *
  * Records the ordered sequence of devloop runs that form a "stack": each run's
  * branch is created from the tip (`chainTip` = last entry's branch, or `base`
@@ -13,7 +18,7 @@ import { atomicWrite, withLock } from "./lock";
  * so concurrent Pi sessions cannot corrupt the chain.
  */
 
-export const STACK_FILENAME = "devloop-stack.json";
+export const STACK_FILENAME = STACK_FILENAME_STORAGE;
 
 export interface StackEntry {
 	/** Devloop task id this run integrated (e.g. "T020"). */
@@ -36,11 +41,11 @@ export interface StackConfig {
 }
 
 function stackDir(repoRoot: string): string {
-	return path.join(repoRoot, ".pi");
+	return path.dirname(stackFile(repoRoot));
 }
 
 function stackFilePath(repoRoot: string): string {
-	return path.join(stackDir(repoRoot), STACK_FILENAME);
+	return stackFile(repoRoot);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

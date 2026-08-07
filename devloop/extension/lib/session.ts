@@ -1,18 +1,19 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Finding, GateResult, GateStage, PlannedSliceResult, TestPlan } from "./contracts";
+import { SESSIONS_DIR as SESSIONS_DIR_STORAGE } from "./storage";
 
 /**
  * Per-task session ledger persisted to disk between devloop gates.
  *
- * The devloop writes one JSON file per active task under `.pi/devloop-sessions/`
+ * The devloop writes one JSON file per active task under `.pi/devloop/sessions/`
  * (relative to the worktree `cwd`). It holds the planner's scoped plan plus a
  * running ledger of every gate's verdict, so a re-dispatched gate (e.g. task-qa
  * after a timeout) can read what previous gates already validated instead of
  * re-deriving the whole corpus from scratch. This is development metadata, not
  * user data — it never leaves the machine and is gitignored.
  */
-export const SESSIONS_DIR = ".pi/devloop-sessions";
+export const SESSIONS_DIR = SESSIONS_DIR_STORAGE;
 export const SESSION_SCHEMA_VERSION = 1;
 
 export type SessionStatus = "in-progress" | "ready-to-merge" | "human-escalation" | "failed";

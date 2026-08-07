@@ -196,7 +196,7 @@ describe("retro persistence", () => {
 	});
 
 	test("retroJsonPath uses the .retro suffix to avoid ledger collisions", () => {
-		expect(retroJsonPath("r-1", "/repo")).toBe(`/repo/.pi/devloop-sessions/r-1${RETRO_SUFFIX}.json`);
+		expect(retroJsonPath("r-1", "/repo")).toBe(`/repo/.pi/devloop/sessions/r-1${RETRO_SUFFIX}.json`);
 	});
 
 	test("removeRetros prunes all retros, or keeps the N most recent", () => {

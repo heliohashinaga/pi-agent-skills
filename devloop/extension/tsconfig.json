@@ -14,6 +14,7 @@
     "lib/contracts.ts",
     "lib/shell.ts",
     "lib/lock.ts",
+    "lib/storage.ts",
     "lib/errors.ts",
     "lib/cancellation.ts",
     "lib/routing.ts",

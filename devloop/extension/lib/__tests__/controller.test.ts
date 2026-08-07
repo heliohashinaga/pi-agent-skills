@@ -707,7 +707,7 @@ describe("devloop controller", () => {
 
 		expect(output.status).toBe("ready-to-merge");
 
-		const raw = readFileSync(join(cwd, ".pi/devloop-sessions", "T030.json"), "utf8");
+		const raw = readFileSync(join(cwd, ".pi/devloop/sessions", "T030.json"), "utf8");
 		const session = JSON.parse(raw);
 		expect(session.taskId).toBe("T030");
 		expect(session.status).toBe("ready-to-merge");
@@ -719,7 +719,7 @@ describe("devloop controller", () => {
 
 		// The planner's plan is ALSO physically persisted to a standalone JSON
 		// file so read-only gates (task-qa) can load it from disk.
-		const planRaw = readFileSync(join(cwd, ".pi/devloop-sessions", "T030-plan.json"), "utf8");
+		const planRaw = readFileSync(join(cwd, ".pi/devloop/sessions", "T030-plan.json"), "utf8");
 		const planFile = JSON.parse(planRaw);
 		expect(planFile).toMatchObject({
 			summary: "A single scoped slice.",
@@ -758,16 +758,16 @@ describe("devloop controller", () => {
 
 		expect(output.status).toBe("ready-to-merge");
 		expect(prompts["task-qa"]).toContain("Session ledger (prior gates)");
-		expect(prompts["task-qa"]).toContain(join(cwd, ".pi/devloop-sessions", "T031.json"));
+		expect(prompts["task-qa"]).toContain(join(cwd, ".pi/devloop/sessions", "T031.json"));
 		// task-qa is told to read the physically-persisted plan JSON from disk.
 		expect(prompts["task-qa"]).toContain("Planner plan JSON (physical file)");
-		expect(prompts["task-qa"]).toContain(join(cwd, ".pi/devloop-sessions", "T031-plan.json"));
+		expect(prompts["task-qa"]).toContain(join(cwd, ".pi/devloop/sessions", "T031-plan.json"));
 		expect(prompts["task-qa"]).toContain("returns the observable result"); // testPlan flows via planContext
 		expect(prompts["code"]).toContain("Session ledger (prior gates)");
 	});
 
 	test("reloads an existing session instead of clobbering prior validation", async () => {
-		const dir = join(cwd, ".pi/devloop-sessions");
+		const dir = join(cwd, ".pi/devloop/sessions");
 		mkdirSync(dir, { recursive: true });
 		const prior = {
 			schemaVersion: 1,
