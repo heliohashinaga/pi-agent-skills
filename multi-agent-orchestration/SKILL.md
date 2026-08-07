@@ -1,165 +1,115 @@
 ---
 name: multi-agent-orchestration
 description: |
-  Playbook for orchestrating pi-subagents safely: async-default execution,
-  single-writer worktrees, explicit acceptance contracts, decision-rule
-  prompting, commit-in-worktree persistence, and planner→writer→validator
-  chains. Use when delegating parallel work, running a chain of agents,
-  fanning out reviewers, or planning the next task slice from a spec/tasks
-  file. Pairs with adaptive-orchestration for tier-aware delegation.
-  Triggers: "delegar workers", "orquestrar agentes", "paralelo",
-  "chain de implementação", "planear próxima task", "fan-out de review",
-  "worktree por slice", "subagent em paralelo", "executar plano multi-agent".
+  Safe orchestration patterns for pi-subagents 0.42.1: workflowScript, async runs,
+  one writer per cwd/worktree, explicit acceptance, and fresh-context review.
+  Use for delegated implementation, staged workflows, or review fan-out.
 ---
 
-# Multi-Agent Orchestration: Complete Playbook
+# Multi-Agent Orchestration
 
-**Start here**: [README.md](README.md) (5 min quick start) → [REFERENCE.md](REFERENCE.md) (pattern lookup)
+This skill targets **pi-subagents 0.42.1**. `workflowScript` is the only public
+multi-run surface. Do not use legacy top-level `chain` or `tasks` inputs.
 
-This document is the **authoritative reference** for multi-agent orchestration rules and patterns.
-Every rule below exists because a specific execution broke without it. Follow them when you
-delegate; deviate only with a stated reason.
+Before delegation, run `orchestration_advisor_advise`. Respect its concurrency
+recommendation; low-memory systems should run children sequentially.
 
-## The five non-negotiable rules
+## Non-negotiable rules
 
-1. **Async by default.** Always pass `async: true` unless you have a specific
-   reason to block. Foreground runs discard worktrees on completion and
-   surface control events too late. Async persists the worktree and
-   `events.jsonl`, lets you inspect with `subagent({ action: "status", id })`,
-   and lets you merge BEFORE any cleanup.
+1. **One writer per cwd.** Parallelize read-only analysis/review. Isolate each
+   parallel writer with `worktree: true` and integrate deliberately.
+2. **Async by default.** Set top-level `async: true` unless the current turn
+   explicitly needs a small foreground result.
+3. **Durable writes.** A worktree writer commits before finishing. Preserve its
+   handoff/branch until integration.
+4. **Explicit scope and validation.** Prompts name goal, evidence, constraints,
+   validation, output, and stop rules.
+5. **Parent owns decisions.** Children escalate unapproved product, architecture,
+   security, or destructive-operation decisions.
+6. **Fresh review.** Reviewers inspect the real diff from `context: "fresh"` and
+   remain read-only.
 
-2. **One writer per worktree.** Parallel fan-out is safe for read-only roles
-   (scout, reviewer, context-builder, researcher, planner, validator). For
-   writers, either isolate each in its own `worktree: true` AND merge
-   deliberately, or keep a single writer on the active worktree with
-   reviewers fanning out read-only around it. Never have several writers in
-   the same dirty worktree.
+## Execution APIs
 
-3. **Explicit acceptance, never inferred.** When you omit `acceptance`, the
-   runtime infers a policy from role/mode/risk — and worker defaults include
-   evidence gates (e.g. `tests-added`) that reject green builds on tasks that
-   never asked for tests. Always pass an explicit contract enumerating ONLY
-   the evidence that matters. Don't list `tests-added` for tasks that don't
-   add tests. For trivial tasks you validate by hand, use `level: "attested"`
-   or `"none"` instead of `"checked"`.
+Use a direct single run only when no sibling/dependency/aggregation exists:
 
-4. **Bake decision rules into the prompt; don't escalate the predictable.**
-   Foreseeable judgment calls (circular-dependency resolution, DTO layer
-   placement, naming, mock-vs-real) belong in the task prompt as rules, not
-   as `contact_supervisor` escalations. Supervisor round-trips add latency and
-   the child often times out before a reply lands. Reserve escalation for
-   genuinely unapproved product/scope/architecture decisions.
-
-5. **Subagent must get its work back into the repo.** A parallel run only pays
-   off if the work survives to be merged. Two guarantees: (a) use async so the
-   worktree persists; (b) instruct the worker to `git add -A && git commit`
-   on its own branch before finishing, so even a later worktree removal leaves
-   the work recoverable via cherry-pick/merge. If neither holds, implement
-   directly — orchestration overhead without durable output is net-negative.
-
-## When subagent orchestration does NOT pay
-
-For tight-coupled slices of ≤4 tasks landing in one commit, the overhead of
-spawning + merging can exceed the value. Subagent earns its cost when:
-- there are ≥3 tasks with disjoint, independent files, OR
-- adversarial fresh-context review adds genuine value (reviewers/validators),
-  OR
-- a chain has real stage dependencies the async chain machinery handles for
-  you.
-
-Otherwise: implement directly, use read-only subagents only for context
-gathering or review.
-
-## Acceptance contract template
-
-Always pass something like this (adapt criteria to the real task). Trim
-`evidence` to what actually matters.
-
-```json
-"acceptance": {
-  "level": "checked",
-  "criteria": [
-    {
-      "id": "build",
-      "must": "dotnet build succeeds with 0 errors",
-      "severity": "required",
-      "evidence": ["commands-run", "validation-output"]
-    }
-  ],
-  "verify": [
-    { "id": "build", "command": "dotnet build", "timeoutMs": 180000 }
-  ]
-}
+```ts
+subagent({
+  agent: "reviewer",
+  task: "Review the current diff. Do not edit files.",
+  context: "fresh",
+  async: true,
+  mission: false
+});
 ```
 
-Use `level: "reviewed"` ONLY when an independent reviewer gate returns a
-result — a worker self-reporting done is NOT a reviewed gate.
+Use `workflowScript` for sequence and fan-out:
 
-## Preferred chain shape: planner → writer → validator (async)
-
-For a feature slice, prefer one async chain over manual waves:
-
+```ts
+subagent({
+  async: true,
+  context: "fresh",
+  workflowScript: `
+    const plan = await runs.run("plan", {
+      agent: "planner",
+      task: "Produce an implementation plan. Do not edit files."
+    });
+    const implementation = await runs.run("implementation", {
+      agent: "worker",
+      task: "Implement this approved plan as sole writer in the workflow cwd; commit before finishing:\n" + plan.output,
+      acceptance: {
+        level: "checked",
+        evidence: ["changed-files", "commands-run", "validation-output", "residual-risks"]
+      }
+    });
+    const reviews = await runs.all([
+      { key: "correctness", agent: "reviewer", task: "Review correctness:\n" + implementation.output },
+      { key: "tests", agent: "reviewer", task: "Review validation quality:\n" + implementation.output }
+    ]);
+    return reviews.map(({ key, output }) => ({ key, output }));
+  `
+});
 ```
-chain (async: true):
-  1. PARALLEL [read-only] reviewers/planners  — write first-failing tests
-     and/or implementation plans; outputMode: "file-only"; acceptance:
-     { level: "reviewed" }
-  2. writer (SOLE writer on the active worktree) — implement following the
-     plans/tests; decision rules baked in; instructed to commit on its
-     branch; acceptance: { level: "checked", criteria:[build+tests] }
-  3. PARALLEL [read-only] validators (fresh-context) — inspect the diff;
-     acceptance: { level: "reviewed" }
-  4. parent synthesizes accepted fixes, merges
+
+`runs.run(key, params)` launches one child and returns its result. `runs.all`
+accepts an array of items, each with a stable `key`. Use ordinary JavaScript for
+branching/retries. Management remains outside scripts:
+
+```ts
+subagent({ action: "status", id: "run-id" });
+subagent({ action: "stop", id: "run-id" });
 ```
 
-Use `{previous}`, `{outputs.name}`, `as:` to thread results between steps.
-`outputMode: "file-only"` for any summary that would bloat context.
+## Acceptance
 
-## Decision-rule prompting (avoid escalations)
+Supported levels are `auto`, `none`, `attested`, `checked`, and `verified`.
 
-Instead of leaving a judgment call open, state the rule and the fallback:
+- Strings `"attested"` and `"checked"` are valid, but object form is clearer.
+- `none` requires `{ level: "none", reason: "..." }`.
+- `verified` requires object form with at least one `verify` command.
+- Never request `reviewed`; independent review is separate. Use
+  `review: { required: true, agent: "reviewer" }` and actually run that reviewer.
+- `checked` collects evidence; it does not itself execute commands. Use
+  `verified` when runtime command execution is required.
 
-> "If a circular dependency arises between Core and Providers, place the DTO
-> in Core (namespace `YourProject.Core.Registry`) — Core cannot
-> depend on Providers. Do not escalate; document the choice in a `<remarks>`
-> doc tag and proceed."
+Supported evidence includes `changed-files`, `tests-added`, `commands-run`,
+`validation-output`, `residual-risks`, `no-staged-files`, `diff-summary`,
+`review-findings`, and `manual-notes`.
 
-Tell the worker the preference architecture, the cache-key format, the mock
-shape, the naming convention — whatever is foreseeable. Reserve
-`contact_supervisor` for: unapproved product scope, a real ambiguity the
-user must resolve, or a blocker the worker cannot unblock with stated rules.
+## Worktrees
 
-## Pitfalls logged on this machine (case studies)
+`worktree: true` creates a managed Git worktree. `worktree: false` means the
+child uses the supplied/shared cwd and provides **no isolation**. Never run
+parallel writers with `worktree: false` in the same cwd. In a sequential
+writer→reviewer workflow, keep the sole writer and later validators in the same
+workflow cwd so validators inspect the actual final tree; the parent must not
+edit that cwd while the async writer runs. Use isolated writer worktrees only
+when the parent will explicitly apply/merge the handoff before validation.
 
-- **Foreground parallel wave → worktrees discarded.** 3 workers built green
-  in isolated worktrees; on foreground completion the worktrees were cleaned
-  before merge. Output artifacts held only prose summaries, not code. Fix:
-  async + commit-in-worktree instruction.
-- **Inferred acceptance → false "failed".** Three green builds reported as
-  failed because the inferred worker policy required `tests-added` evidence
-  on tasks that never asked for tests. Fix: explicit `acceptance` with only
-  the relevant criteria.
-- **Supervisor escalation arrived post-facto.** A worker hit a circular-dep
-  conflict and escalated; the parent saw the message ~23 min later, after
-  the child's internal timeout expired. Fix: bake the dep-direction rule into
-  the prompt so escalation never happens.
+## Stop conditions
 
----
+Stop and ask the user when a required product/architecture/security decision is
+unapproved, cleanup could destroy unrecovered work, or reviewers disagree on a
+scope-changing fix. Do not loop for optional polish.
 
-## Integration with Adaptive Orchestration
-
-This skill **pairs with** adaptive-orchestration for complete resource-aware delegation:
-
-- **Multi-Agent Orchestration**: How to structure chains, worktrees, acceptance contracts
-- **Adaptive Orchestration**: What resources are available, which tier to use
-
-**→ See ORCHESTRATION-BRIDGE.md for combined workflow**
-
----
-
-## Navigation
-
-- **README.md** — Quick start & decision tree (3 min)
-- **REFERENCE.md** — Pattern lookup & tier constraints (5 min)
-- **ORCHESTRATION-BRIDGE.md** — Integration with adaptive-orchestration
-- **This file** — Complete rules, case studies, decision-rule templates
+See `REFERENCE.md` for recipes and `TROUBLESHOOTING.md` for diagnosis.

@@ -1,13 +1,21 @@
 {
-  "level": "reviewed",
-  "description": "For tasks that require independent human or AI reviewer approval.",
+  "level": "checked",
   "criteria": [
     {
-      "id": "code-review",
-      "must": "Independent reviewer approves the diff",
+      "id": "implementation-evidence",
+      "must": "Implementation returns checked delivery evidence",
       "severity": "required",
-      "evidence": ["reviewer-approval"]
+      "evidence": [
+        "changed-files",
+        "commands-run",
+        "validation-output",
+        "residual-risks"
+      ]
     }
   ],
-  "acceptanceNotes": "Use ONLY when you have a fresh-context reviewer (not self-report). Example: validator agent reviews output from writer agent."
+  "review": {
+    "required": true,
+    "agent": "reviewer",
+    "focus": "Correctness, regressions, and acceptance criteria"
+  }
 }

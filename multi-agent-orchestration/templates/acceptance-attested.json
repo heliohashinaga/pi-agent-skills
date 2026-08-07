@@ -1,6 +1,10 @@
 {
   "level": "attested",
-  "description": "For documentation-only or quick validation tasks where you manually verify the output",
-  "criteria": [],
-  "acceptanceNotes": "No automated checks. Use this for tasks you validate by eye or tasks that don't produce testable output."
+  "criteria": [
+    "Return a concise result with manual verification notes"
+  ],
+  "evidence": [
+    "manual-notes",
+    "residual-risks"
+  ]
 }
