@@ -46,11 +46,35 @@ ln -s "$PWD" ~/.pi/agent/extensions/devloop
 index.ts                 # entry: registers session_start, renderers, 5 commands
 lib/                     # domain + runtime modules (controller, routing, pipeline, …)
 lib/__tests__/           # 20 test files (210 tests)
+agents/                  # devloop subagent definitions (11 agents)
 types/                   # .d.ts shims for pi-coding-agent / pi-subagents surface
 specs/                   # feature specs (retrospective, stacked-pr-integrate, refactor)
 tsconfig.json            # strict TS — domain (no pi runtime types)
 tsconfig.runtime.json    # strict TS — runtime (index/delegate/retro-agent via shims)
 ```
+
+## Agents
+
+The extension bundles 11 read-only subagents used by the gate pipeline:
+
+| Agent | Purpose |
+|---|---|
+| `feature-planner` | Scopes and validates a task slice |
+| `task-qa` | Validates planner output for ambiguities |
+| `worker-simple` | Implements simple slices |
+| `worker-complex` | Implements complex slices |
+| `reviewer-simple` | Light code review |
+| `reviewer-complex` | Full code review |
+| `tester-simple` | Light test verification |
+| `tester-complex` | Full test verification |
+| `security-triage` | Security gate triage |
+| `security-reviewer` | Deep security review |
+| `integrator` | Final integration and PR creation |
+| `retro` | Post-run retrospective analysis |
+
+These agents are **versioned with the extension** (not user-global). The
+extension loads them at runtime, ensuring the gate pipeline always uses
+compatible agent definitions.
 
 ## Commands (registered by the extension)
 
