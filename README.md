@@ -99,6 +99,18 @@ Token-based styling, accessible primitives, Storybook conventions.
 
 ---
 
+#### **Playwright**
+End-to-end, visual and Storybook test conventions for coding agents.
+
+- ✅ Run against production build (not dev mode) — deterministic, no cold-compile flake
+- ✅ Privacy invariants, deterministic fake providers (no live AI)
+- ✅ Web-first assertions, a11y, visual regression
+
+**Links**:
+- [`skills/playwright/SKILL.md`](skills/playwright/SKILL.md)
+
+---
+
 ### Cross-Cutting
 
 | Skill | Description |
