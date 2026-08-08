@@ -1,9 +1,0 @@
-# Dependencies
-node_modules/
-
-# Build artifacts
-*.tsbuildinfo
-
-# Non-pnpm lockfiles (pnpm is the package manager)
-bun.lock
-package-lock.json
