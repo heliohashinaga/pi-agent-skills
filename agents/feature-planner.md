@@ -69,7 +69,8 @@ documentation only**. You have no file-modification tools (no `edit`/`write`; no
    - the **language skills** to attach (an array from the allowlist:
      dotnet, rust, python, java, typescript, vuejs, docs, security,
      gitmoji, nextjs, design-system, multi-agent-orchestration,
-     orchestration-advisor) based on the stack;
+     orchestration-advisor, playwright) based on the stack; attach
+     `playwright` whenever the slice includes E2E/visual/Storybook tests;
    - **dependencies** — what must finish before it;
    - **docsNeeded** — a boolean indicating whether this slice requires a docs
      update after all verification gates pass;
