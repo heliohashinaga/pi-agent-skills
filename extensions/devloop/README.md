@@ -28,7 +28,7 @@ pnpm test                        # 210 unit/integration/wiring tests (bun test)
 `pnpm-workspace.yaml` is **not a monorepo declaration** — in pnpm 10+ it holds
 project configuration. It carries:
 
-- `minimumReleaseAgeExclude: [pi-subagents@0.42.1]` — exempts the hard-pinned
+- `minimumReleaseAgeExclude: [pi-subagents@0.43.0]` — exempts the hard-pinned
   `pi-subagents` from the supply-chain `minimumReleaseAge` defense.
 
 ## Install (local, symlink)

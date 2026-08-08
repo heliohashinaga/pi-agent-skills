@@ -1,14 +1,14 @@
 ---
 name: multi-agent-orchestration
 description: |
-  Safe orchestration patterns for pi-subagents 0.42.1: workflowScript, async runs,
+  Safe orchestration patterns for pi-subagents 0.43.0: workflowScript, async runs,
   one writer per cwd/worktree, explicit acceptance, and fresh-context review.
   Use for delegated implementation, staged workflows, or review fan-out.
 ---
 
 # Multi-Agent Orchestration
 
-This skill targets **pi-subagents 0.42.1**. `workflowScript` is the only public
+This skill targets **pi-subagents 0.43.0**. `workflowScript` is the only public
 multi-run surface. Do not use legacy top-level `chain` or `tasks` inputs.
 
 Before delegation, run `orchestration_advisor_advise`. Respect its concurrency
@@ -79,6 +79,23 @@ branching/retries. Management remains outside scripts:
 subagent({ action: "status", id: "run-id" });
 subagent({ action: "stop", id: "run-id" });
 ```
+
+## Control surface (0.42.1 → 0.43.0)
+
+- Call `subagent({ action: "list" })` first and use only executable/non-disabled
+  agents.
+- `subagent({ action: "children.list" })` lists the last 10 retained children of
+  this session; resume one with `runs.run(key, { resume: "run-id", task })`,
+  which continues it with its stored contract. Retained children only exist in
+  the originating session.
+- Mission-attached workflows get durable JSON state via `state.get(key)` and
+  `state.set(key, value)` inside the script; `mission: false` workflows do not.
+- `gate` runs one host command (e.g. a build/format check) before the child
+  starts and cannot be combined with `acceptance`; prefer `verified` acceptance
+  for runtime verification instead.
+- Do not pass `turnBudget`, a hard `toolBudget`, or a tight `usageBudget` to
+  mutation-capable workers — the default tool budget blocks read/search tools,
+  not mutation tools, so they cannot protect shared state.
 
 ## Acceptance
 

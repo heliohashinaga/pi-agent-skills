@@ -1,6 +1,6 @@
 # Multi-Agent Orchestration
 
-Current recipes for **pi-subagents 0.42.1**.
+Current recipes for **pi-subagents 0.43.0**.
 
 ## Quick start
 
@@ -10,6 +10,10 @@ Current recipes for **pi-subagents 0.42.1**.
 4. Use `workflowScript` with `runs.run(key, params)` and `runs.all(items)` for
    every coordinated sequence/fan-out.
 5. Use explicit acceptance and fresh read-only reviewers.
+
+New in 0.43.0: `children.list` + `runs.run(key, { resume, task })` to continue
+retained children, `state.get`/`state.set` for mission-workflow JSON state, and
+`gate` for a single host-run pre-check (mutually exclusive with `acceptance`).
 
 ```ts
 subagent({

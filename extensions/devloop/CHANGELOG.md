@@ -6,6 +6,13 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+- Upgraded the hard-pinned `pi-subagents` dependency from `0.42.1` to
+  `0.43.0` (`package.json`, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`,
+  lockfile). The `delegation` / `preflight` surface devloop consumes (subagent
+  delegation events, `resolveSubagentLaunchContract`) is unchanged in `0.43.0`;
+  typecheck + test suite remain green.
+
 ### Added
 - Extension imported into the `pi-agent-skills` repository as
   `devloop/extension/` (canonical source). Previously it lived only as an
