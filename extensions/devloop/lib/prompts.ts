@@ -49,7 +49,7 @@ export function plannerPrompt(task: TaskDefinition, feedback: string): string {
 	return [
 		base,
 		"The structured plan MUST include every required field: stage, verdict, startingWorker, summary, acceptanceCriteria, skills (array of language/tool skills from the allowlist below), and docsNeeded (a boolean).",
-		"The structured plan MAY additionally include a testPlan object (\"rationale\" + \"entries\" array of { criterion, unit[], contract?, e2e?, visual? }). You MUST populate a non-empty testPlan for E2E/visual/security-sensitive slices (worker-complex, or any slice touching E2E/visual/security surfaces). For trivial worker-simple slices you may omit it.",
+		"The structured plan MAY additionally include a testPlan object (\"rationale\" + \"entries\" array). Each entry holds a \"criterion\" plus at least one populated test tier: unit[] (Vitest), contract[] (API-contract/integration), e2e[] (Playwright), or visual[] (Storybook). `unit` is NOT mandatory: an entry may be contract-only (or e2e/visual-only) when unit tests do not apply — e.g. a regression entry \"existing tests still pass\" can carry just contract[]. You MUST populate a non-empty testPlan for E2E/visual/security-sensitive slices (worker-complex, or any slice touching E2E/visual/security surfaces). For trivial worker-simple slices you may omit it.",
 		"Allowed skills: " + ALLOWED_SKILLS.join(", "),
 		"docsNeeded is required: return true when this slice needs a docs/ADR update after all gates pass, otherwise false. Never omit it.",
 	].join("\n");

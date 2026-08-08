@@ -50,8 +50,8 @@ export interface Finding {
 export interface TestPlanEntry {
 	/** Acceptance criterion this entry covers (traceability to acceptanceCriteria). */
 	criterion: string;
-	/** Unit test intents (Vitest). */
-	unit: string[];
+	/** Unit test intents (Vitest). Optional when another tier (e.g. contract) applies. */
+	unit?: string[];
 	/** API-contract / integration intents (route + pipeline vs OpenAPI). */
 	contract?: string[];
 	/** Playwright user journeys (e.g. pt-BR + en). */
@@ -191,17 +191,24 @@ const findingSchema = {
 
 const summaryProperty = { type: "string", minLength: 1 } as const;
 
+const testPlanTier = { type: "array", minItems: 1, items: summaryProperty } as const;
+
 const testPlanEntrySchema = {
 	type: "object",
 	additionalProperties: false,
-	required: ["criterion", "unit"],
+	required: ["criterion"],
 	properties: {
 		criterion: summaryProperty,
-		unit: { type: "array", items: summaryProperty },
-		contract: { type: "array", items: summaryProperty },
-		e2e: { type: "array", items: summaryProperty },
-		visual: { type: "array", items: summaryProperty },
+		unit: testPlanTier,
+		contract: testPlanTier,
+		e2e: testPlanTier,
+		visual: testPlanTier,
 	},
+	// At least one test tier must be populated — an entry cannot be empty. A
+	// regression/contract-only entry (no `unit`) is valid as long as it carries
+	// another tier (e.g. contract), so a planner omitting `unit` on such an entry
+	// no longer rejects the whole structured output.
+	anyOf: [{ required: ["unit"] }, { required: ["contract"] }, { required: ["e2e"] }, { required: ["visual"] }],
 } as const;
 
 const testPlanSchema = {
