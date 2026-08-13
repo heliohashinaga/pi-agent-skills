@@ -6,7 +6,7 @@ description: |
   Counterpart to tester-complex on worker-simple slices. Never creates or
   modifies files — test authoring is done by the worker, not the tester gate.
 aliases: quick-tester, simple-test-verifier
-model: openrouter/deepseek/deepseek-v4-flash-0731
+model: opencode-go/deepseek/deepseek-v4-flash-0731
 thinking: high
 tools: read, grep, find, ls, bash, contact_supervisor
 completionGuard: false

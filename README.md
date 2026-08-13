@@ -118,6 +118,7 @@ End-to-end, visual and Storybook test conventions for coding agents.
 | **gitmoji** | Gitmoji + Conventional Commits for commit messages |
 | **security** | OWASP checklist, secret scanning, SAST, SSRF/authz checks |
 | **docs** | README, ADR, runbooks, API documentation |
+| **speckit** | Spec Kit — spec-driven development workflow (`/speckit.*`) |
 
 **Links**:
 - [`skills/gitmoji/SKILL.md`](skills/gitmoji/SKILL.md)

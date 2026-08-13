@@ -2,7 +2,7 @@
 name: worker-simple
 description: Worker for simple, repetitive tasks — fast, mechanical execution with strict scope
 aliases: simple-worker, exec, rapid-executor
-model: openrouter/deepseek/deepseek-v4-flash-0731
+model: opencode-go/deepseek/deepseek-v4-flash-0731
 skills: gitmoji
 thinking: high
 tools: read, grep, find, ls, bash, edit, write, contact_supervisor

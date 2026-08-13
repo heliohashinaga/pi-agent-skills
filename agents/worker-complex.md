@@ -2,7 +2,7 @@
 name: worker-complex
 description: Generalist worker producing deep, high-impact, tightly-coupled code changes in any programming language — planning, decomposition and implementation of complex slices
 aliases: complex-worker, deep-worker, deep-implementer, architect-worker
-model: openrouter/deepseek/deepseek-v4-pro
+model: opencode-go/deepseek/deepseek-v4-pro
 skills: gitmoji
 thinking: high
 tools: read, grep, find, ls, bash, edit, write, contact_supervisor

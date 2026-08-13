@@ -7,7 +7,7 @@ description: |
   or modifies files — test authoring is done by the worker, not this gate.
   Use when the task demands deep test verification.
 aliases: tester, qa-tester, test-verifier, regression-verifier
-model: openrouter/deepseek/deepseek-v4-pro
+model: opencode-go/deepseek/deepseek-v4-pro
 thinking: high
 tools: read, grep, find, ls, bash, contact_supervisor
 completionGuard: false

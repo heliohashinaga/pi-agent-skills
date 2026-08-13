@@ -8,7 +8,7 @@ description: |
   cycle, before dispatching workers. Outputs the plan; never implements or edits
   source.
 aliases: feature-planner, slice-designer, feature-plan, plan-slices
-model: openrouter/deepseek/deepseek-v4-pro
+model: opencode-go/deepseek/deepseek-v4-pro
 thinking: high
 tools: read, grep, find, ls, contact_supervisor
 completionGuard: false
